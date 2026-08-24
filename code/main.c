@@ -1,11 +1,18 @@
 
 #include "shared.c"
 #include "os.c"
+#include "print.c"
 
 local void Main(void)
 {
-    char Message[] = "Hello, world!\n";
+    Println(Str("Hello, world!"));
 
-    WriteStdOut(Message, sizeof(Message) - 1);
+    Print(Str("Printing integers:"));
+    PrintNewLine();
+
+    Print(Str("    ")); PrintUSize(123456789); PrintNewLine();
+    Print(Str("    ")); PrintSSize(-124); PrintNewLine();
+    Print(Str("    ")); PrintSSize(52387); PrintNewLine();
+    Print(Str("    ")); PrintUSize(1024); PrintNewLine();
 }
 
