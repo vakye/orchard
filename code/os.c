@@ -1,6 +1,8 @@
 
 #pragma once
 
+local void* MapExecutable(void* Code, usize CodeSize);
+
 local usize WriteStdOut(void* Data, usize Size);
 local usize WriteStdErr(void* Data, usize Size);
 
@@ -11,9 +13,26 @@ local void Exit(u8 ExitCode);
 #define STDOUT_FILENO (1)
 #define STDERR_FILENO (2)
 
+#define PROT_NONE       (0x00)
+#define PROT_READ       (0x01)
+#define PROT_WRITE      (0x02)
+#define PROT_EXEC       (0x04)
+
+#define MAP_PRIVATE     (0x02)
+#define MAP_ANONYMOUS   (0x20)
+
+typedef struct
+{
+    u32 ArgCount;
+    char** Args;
+} linux_state;
+
+local linux_state LinuxState = {0};
+
 typedef enum
 {
     SyscallNumber_Write = 1,
+    SyscallNumber_MMap  = 9,
     SyscallNumber_Exit  = 60,
 } syscall_number;
 
@@ -41,6 +60,27 @@ local usize LinuxSyscall(
         "r"(R9) :
         "memory", "rcx", "r11"
     );
+
+    return (Result);
+}
+
+local void* MapExecutable(void* Code, usize CodeSize)
+{
+    ssize MapResult = (ssize)LinuxSyscall(
+        SyscallNumber_MMap,
+        0,
+        CodeSize,
+        PROT_READ|PROT_WRITE|PROT_EXEC,
+        MAP_PRIVATE|MAP_ANONYMOUS,
+        -1,
+        0
+    );
+
+
+    void* Result = (void*)Maximum(0, MapResult);
+
+    if (Result)
+        CopyMemory(Result, Code, CodeSize);
 
     return (Result);
 }
@@ -78,7 +118,7 @@ local void Exit(u8 ExitCode)
     LinuxSyscall(SyscallNumber_Exit, ExitCode, 0, 0, 0, 0, 0);
 }
 
-local void Main(void);
+void Main(void);
 
 __attribute__((force_align_arg_pointer))
 void EntryPoint(void)
