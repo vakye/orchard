@@ -1,9 +1,11 @@
 
 #pragma once
 
-
 #define local static
 #define persist static
+
+#define Minimum(A, B) ((A) < (B) ? (A) : (B))
+#define Maximum(A, B) ((A) > (B) ? (A) : (B))
 
 typedef signed char s8;
 typedef signed short s16;

@@ -1,13 +1,20 @@
 
 #pragma once
 
+local usize WriteStdOut(void* Data, usize Size);
+local usize WriteStdErr(void* Data, usize Size);
+
 local void Exit(u8 ExitCode);
 
 #if defined(__linux__)
 
+#define STDOUT_FILENO (1)
+#define STDERR_FILENO (2)
+
 typedef enum
 {
-    SyscallNumber_Exit = 60,
+    SyscallNumber_Write = 1,
+    SyscallNumber_Exit  = 60,
 } syscall_number;
 
 local usize LinuxSyscall(
@@ -35,6 +42,34 @@ local usize LinuxSyscall(
         "memory", "rcx", "r11"
     );
 
+    return (Result);
+}
+
+local usize WriteStdOut(void* Data, usize Size)
+{
+    ssize Written = (ssize)LinuxSyscall(
+        SyscallNumber_Write,
+        STDOUT_FILENO,
+        (usize)Data,
+        Size,
+        0, 0, 0
+    );
+
+    usize Result = Maximum(0, Written);
+    return (Result);
+}
+
+local usize WriteStdErr(void* Data, usize Size)
+{
+    ssize Written = (ssize)LinuxSyscall(
+        SyscallNumber_Write,
+        STDERR_FILENO,
+        (usize)Data,
+        Size,
+        0, 0, 0
+    );
+
+    usize Result = Maximum(0, Written);
     return (Result);
 }
 
